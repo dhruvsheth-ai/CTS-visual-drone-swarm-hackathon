@@ -10,6 +10,8 @@ import traceback
 import av
 import tellopy
 
+import rospy
+from geometry_msgs.msg import PoseStamped
 
 from djitellopy import Tello
 
@@ -103,7 +105,7 @@ def main():
             retry -= 1
             try:
                 tello.streamon()
-                frame = tello.get_video_frame()
+                frame = tello.get_frame_read()
                 container = frame
             except av.AVError as ave:
                 print(ave)
@@ -112,11 +114,11 @@ def main():
 
         # skip first 300 frames
         frame_skip = 300
+        time.sleep(2)  # Wait for the video stream to stabilize
+
         while True:
-            for frame in container:
-                if 0 < frame_skip:
-                    frame_skip = frame_skip - 1
-                    continue
+            frame = container.frame
+            if frame is not None:
                 start_time = time.time()
 
                 ####################

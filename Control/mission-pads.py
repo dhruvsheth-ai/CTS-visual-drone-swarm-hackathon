@@ -1,7 +1,6 @@
 from djitellopy import Tello
 
 # create and connect
-# 创建Tello对象并连接
 tello = Tello()
 tello.connect()
 
@@ -15,7 +14,6 @@ tello.takeoff()
 pad = tello.get_mission_pad_id()
 
 # detect and react to pads until we see pad #1
-# 发现并识别挑战卡直到看见1号挑战卡
 while pad != 1:
     if pad == 3:
         tello.move_back(30)
@@ -28,7 +26,6 @@ while pad != 1:
     pad = tello.get_mission_pad_id()
 
 # graceful termination
-# 安全结束程序
 tello.disable_mission_pads()
 tello.land()
 tello.end()

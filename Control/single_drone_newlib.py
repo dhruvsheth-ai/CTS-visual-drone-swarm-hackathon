@@ -10,8 +10,6 @@ import traceback
 import av
 import tellopy
 
-import rospy
-from geometry_msgs.msg import PoseStamped
 
 from djitellopy import Tello
 
@@ -105,9 +103,8 @@ def main():
             retry -= 1
             try:
                 tello.streamon()
-                frame = tello.get_video_frame
-                time.sleep(1)
-                container = av.open(frame)
+                frame = tello.get_video_frame()
+                container = frame
             except av.AVError as ave:
                 print(ave)
                 print('retry...')
@@ -116,7 +113,7 @@ def main():
         # skip first 300 frames
         frame_skip = 300
         while True:
-            for frame in container.decode(video=0):
+            for frame in container:
                 if 0 < frame_skip:
                     frame_skip = frame_skip - 1
                     continue
@@ -179,12 +176,8 @@ def main():
         traceback.print_exception(exc_type, exc_value, exc_traceback)
         print(ex)
     finally:
-        drone.quit()
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    rospy.init_node('test', anonymous=True)
-    rospy.Subscriber(f'/vrpn_client_node/{telloID1}/pose', PoseStamped, current_positioning_drone_1)
-    rospy.Subscriber(f'/vrpn_client_node/goal/pose', PoseStamped, goal_positioning)
 
     main()

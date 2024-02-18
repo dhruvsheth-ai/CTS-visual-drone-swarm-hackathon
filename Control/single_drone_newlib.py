@@ -10,8 +10,6 @@ import traceback
 import av
 import tellopy
 
-import rospy
-from geometry_msgs.msg import PoseStamped
 
 from djitellopy import Tello
 
@@ -64,15 +62,21 @@ def goal_positioning(msg):
 
 
 def cb_cmd_vel(drone, continuous_action):
-
     linear_z, linear_x, linear_y, angular_z = continuous_action[0]
 
+    # Scale the inputs from -1 to 1 range to -100 to 100 range for djitellopy
+    # Assuming the original scaling factor of 0.3 is to limit the maximum speed,
+    # you might want to adjust the scaling to fit the -100 to 100 range.
+    # For example, if you still want to limit the speed, you could use a scaling factor
+    # that considers the max value of 100. Here, I'm directly scaling to the full range.
 
+    scaled_linear_y = int(linear_y * 100)  # Forward/Backward
+    scaled_linear_x = int(linear_x * 100)  # Left/Right
+    scaled_angular_z = int(angular_z * 100)  # Yaw
+    scaled_linear_z = int(linear_z * 100)  # Up/Down
 
-    drone.move_left(0.3 * (linear_y) * 100)
-    drone.move_forward(0.3 * (linear_x) * 100)
-    drone.move_down(0.3 * (angular_z) * 100)
-    drone.set_speed(0.3 * (linear_z) * 100)
+    # Use the send_rc_control method to send the scaled commands to the drone
+    drone.send_rc_control(scaled_linear_x, scaled_linear_y, scaled_linear_z, scaled_angular_z)
 
 def handler(event, sender, data, **args):
     drone = sender

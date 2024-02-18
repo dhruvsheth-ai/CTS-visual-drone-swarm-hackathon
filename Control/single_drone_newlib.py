@@ -10,6 +10,7 @@ import traceback
 import av
 import tellopy
 
+import rospy
 from geometry_msgs.msg import PoseStamped
 
 from djitellopy import Tello
@@ -38,45 +39,6 @@ obs_1 = sess.get_inputs()[1].name
 recurrent_in = sess.get_inputs()[2].name
 
 ## Handlers and control functions ##
-
-
-def set_throttle(self, throttle):
-    """
-    Set_throttle controls the vertical up and down motion of the drone.
-    Pass in an int from -1.0 ~ 1.0. (positive value means upward)
-    """
-    self.left_y = self.__fix_range(throttle)
-
-
-def set_yaw(self, yaw):
-    """
-    Set_yaw controls the left and right rotation of the drone.
-    Pass in an int from -1.0 ~ 1.0. (positive value will make the drone turn to the right)
-    """
-    self.left_x = self.__fix_range(yaw)
-
-def set_pitch(self, pitch):
-    """
-    Set_pitch controls the forward and backward tilt of the drone.
-    Pass in an int from -1.0 ~ 1.0. (positive value will make the drone move forward)
-    """
-    self.right_y = self.__fix_range(pitch)
-
-
-def set_roll(self, roll):
-    """
-    Set_roll controls the the side to side tilt of the drone.
-    Pass in an int from -1.0 ~ 1.0. (positive value will make the drone move to the right)
-    """
-    self.right_x = self.__fix_range(roll)
-
-
-
-
-
-
-
-
 
 
 def current_positioning_drone_1(msg):
@@ -143,7 +105,9 @@ def main():
             retry -= 1
             try:
                 tello.streamon()
-                container = av.open(tello.get_frame_read())
+                frame = tello.get_video_frame
+                time.sleep(1)
+                container = av.open(frame)
             except av.AVError as ave:
                 print(ave)
                 print('retry...')
@@ -189,7 +153,7 @@ def main():
                 obs_1_data[0, 7: 10] = np.reshape(normalized_mul, (1, 3))
                 obs_1_data[0, 10: 14] = continuous_action
 
-                cb_cmd_vel(drone, continuous_action)
+                cb_cmd_vel(tello, continuous_action)
 
                 distance_target = np.linalg.norm(position_drone_1 - goal_position)
 
@@ -219,5 +183,8 @@ def main():
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
+    rospy.init_node('test', anonymous=True)
+    rospy.Subscriber(f'/vrpn_client_node/{telloID1}/pose', PoseStamped, current_positioning_drone_1)
+    rospy.Subscriber(f'/vrpn_client_node/goal/pose', PoseStamped, goal_positioning)
 
     main()

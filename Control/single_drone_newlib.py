@@ -10,7 +10,6 @@ import traceback
 import av
 import tellopy
 
-import rospy
 from geometry_msgs.msg import PoseStamped
 
 from djitellopy import Tello
@@ -220,8 +219,5 @@ def main():
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    rospy.init_node('test', anonymous=True)
-    rospy.Subscriber(f'/vrpn_client_node/{telloID1}/pose', PoseStamped, current_positioning_drone_1)
-    rospy.Subscriber(f'/vrpn_client_node/goal/pose', PoseStamped, goal_positioning)
 
     main()

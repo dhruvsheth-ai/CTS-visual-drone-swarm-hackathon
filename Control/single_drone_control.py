@@ -78,11 +78,12 @@ def euler_to_quaternion(roll, pitch, yaw):
 
 def position_update_thread(drone):
     global position_drone_1, orientation_drone_1, goal_position
-
+    #time.sleep(2)
     try:
         while True:
 
             msg_orientation = drone.query_attitude()
+            print(msg_orientation)
             [qw, qx, qy, qz] = euler_to_quaternion(msg_orientation["roll"],
                                                    msg_orientation["pitch"],
                                                    msg_orientation["yaw"])
@@ -112,24 +113,25 @@ def main():
     global frame_count
 
     drone = djitellopy.Tello()
-    t = threading.Thread(target=position_update_thread, args=(drone, ))
-    t.start()
     try:
         # drone.subscribe(drone.EVENT_FLIGHT_DATA, handler)
 
         drone.connect(wait_for_state=True)
         # drone.wait_for_connection(60.0)
 
-        drone.takeoff()
+        # drone.takeoff()
 
         time.sleep(5)
 
+        t = threading.Thread(target=position_update_thread, args=(drone, ))
+        t.daemon = True
+        t.start()
         retry = 3
         container = None
         while container is None and 0 < retry:
             retry -= 1
             try:
-                container = av.open(drone.get_video_stream())
+                container = av.open(drone.get_udp_video_address())
             except av.AVError as ave:
                 print(ave)
                 print('retry...')
@@ -152,7 +154,7 @@ def main():
                 frame_count += 1
 
                 image = np.array(frame.to_image())[:, 120:839, :]
-
+                print("IMAGE: ", image)
                 processed_frame = np.array(image_processing(image),
                                            dtype=np.float32)
 
